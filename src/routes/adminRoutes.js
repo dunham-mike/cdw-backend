@@ -1,5 +1,4 @@
 const express = require('express');
-const debug = require('debug')('app:adminRoutes');
 const adminController = require('../controllers/adminController');
 
 const adminRouter = express.Router();
