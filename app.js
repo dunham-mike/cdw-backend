@@ -12,7 +12,7 @@ const adminRouter = require('./src/routes/adminRoutes')();
 const timetablesRouters = require('./src/routes/timetablesRoutes')();
 
 app.use('/admin', adminRouter);
-app.use('/timetables', timetablesRouters);
+app.use('/api/timetables', timetablesRouters);
 app.get('/', (req, res) => res.send('My backend server!'));
 
 app.listen(port, () => debug(`Server running on port ${port}`));
