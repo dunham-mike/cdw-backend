@@ -2,6 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const debug = require('debug')('app');
 const connectDB = require('./config/db');
+var cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 8082;
@@ -10,6 +11,8 @@ connectDB();
 
 const adminRouter = require('./src/routes/adminRoutes')();
 const timetablesRouters = require('./src/routes/timetablesRoutes')();
+
+app.use(cors({ origin: true, credentials: true }));
 
 app.use('/admin', adminRouter);
 app.use('/api/timetables', timetablesRouters);
