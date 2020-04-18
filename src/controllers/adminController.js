@@ -4,8 +4,10 @@ const transitDataService = require('../services/mtcService');
 const Timetables = require('../models/Timetables');
 
 const adminController = () => {
-    const updateOperatorTimetables = async (operatorId) => {
-        debug('calling updateOperatorTimetables() in adminController');
+    const updateOperatorTimetables = (req, res) => {
+        const operatorId = 'CT';
+        debug('get request on /admin/update-timetables');
+        res.write('Updating timetables...\n');
 
         (async function getTransitData() {
             try {
@@ -22,8 +24,14 @@ const adminController = () => {
                     .then(timetable => {
                         debug(timetable);
                         debug(chalk.green('updateOperatorTimetables() complete'));
+                        res.write('Updating timetables complete!');
+                        res.end();
                     })
-                    .catch(error => debug('[MongooseDB]', error));
+                    .catch(error => {
+                        debug('[MongooseDB]', error);
+                        res.write('Error: Unable to update timetables');
+                        res.end();
+                    });
                 
             } catch(err) {
                 debug(err);

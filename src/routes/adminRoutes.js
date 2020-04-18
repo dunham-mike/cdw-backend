@@ -4,17 +4,11 @@ const adminController = require('../controllers/adminController');
 
 const adminRouter = express.Router();
 
-const operatorId = 'CT';
-
 const router = () => {
     const { updateOperatorTimetables } = adminController();
 
     adminRouter.route('/update-timetables')
-        .get((req, res) => { 
-            debug('get request on /admin/update-timetables');
-            res.send('Updating timetables...');
-            updateOperatorTimetables(operatorId);
-        });
+        .get(updateOperatorTimetables);
 
     return adminRouter;
 }
