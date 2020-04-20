@@ -25,7 +25,7 @@ const timetablesRouters = require('./src/routes/timetablesRoutes')();
 app.use(cors({ origin: true, credentials: true }));
 
 app.use(cookieParser());
-app.use(session({ secret: process.env.EXPRESS_SESSION_SECRET })); // TODO: Revise this?
+// app.use(session({ secret: process.env.EXPRESS_SESSION_SECRET })); // TODO: Revise this?
 
 app.use(passport.initialize());
 

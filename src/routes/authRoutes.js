@@ -7,10 +7,13 @@ const authRouter = express.Router();
 // const secret = process.env.JWT_SECRET;
 
 const router = () => {
-    const { createUserAccount } = authController();
+    const { createUserAccount, login } = authController();
 
     authRouter.route('/create-account')
         .post(createUserAccount);
+
+    authRouter.route('/login')
+        .post(login);
 
     return authRouter;
 }

@@ -4,10 +4,6 @@ const mongoose = require('mongoose');
 const User = mongoose.model('user');
 const debug = require('debug')('app:passport');
 
-// import bcrypt from 'bcrypt';
-
-// const BCRYPT_SALT_ROUNDS = 12;
-
 passport.use('create-account', new LocalStrategy({
     usernameField: 'user[email]',
     passwordField: 'user[password]'
@@ -38,39 +34,19 @@ passport.use('create-account', new LocalStrategy({
 }
 ));
 
-
 passport.use('login', new LocalStrategy({
     usernameField: 'user[email]',
     passwordField: 'user[password]'
 }, (email, password, done) => {
-    User.findOne({ email: email })
+    try {
+        User.findOne({ email: email })
         .then((user) => {
             if(!user || !user.validPassword(password)) {
-                return done(null, false, { errors: { 'email or password' : 'is invalid' }});
+                return done('Email or password is invalid.', false);
             }
-
             return done(null, user);
         })
-        .catch(done);
+    } catch(err) {
+        done(err);
+    }
 }));
-
-
-
-// const passport = require('passport');
-
-// module.exports = passportConfig = (app) => {
-//     app.use(passport.initialize());
-//     app.use(passport.session());
-
-//     // Stores user in session
-//     passport.serializeUser((user, done) => {
-//         done(null, user);
-//     });
-
-//     // Retrieves user from session
-//     passport.deserializeUser((user, done) => {
-//         done(null, user);
-//     });
-
-//     require('./strategies/local.strategy');
-// }

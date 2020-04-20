@@ -7,6 +7,7 @@ const connectDB = async () => {
             process.env.MONGODB_URI,
             {
                 useNewUrlParser: true,
+                useCreateIndex: true,
                 useUnifiedTopology: true
             }
         );

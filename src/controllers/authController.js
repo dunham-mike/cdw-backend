@@ -3,7 +3,7 @@ const User = require('../models/User');
 const passport = require('passport');
 
 const authController = () => {
-    const createUserAccount = (req, res, next) => {
+    const createUserAccount = (req, res) => {
         debug('post request on /api/auth/create-account');
         debug(req.body);
 
@@ -11,25 +11,26 @@ const authController = () => {
             debug('err:', err);
             debug('user:', user);
             debug('info:', info);
-            res.send('user created!');
-        })(req, res, next);
-
-        // res.send('tada!');
-
-        
-
-        // Timetables.findOne().sort({updated_date: -1})
-        //     .then(timetables => {
-        //         debug(timetables);
-        //         res.json(timetables);
-        //     })
-        //     .catch(error => {
-        //         debug('[MongooseDB]', error);
-        //         res.status(404).json({ no_timetables_found: 'Unable to retrieve timetables' });
-        //     });
+            res.send('User created!');
+        })(req, res);
     }
 
-    return { createUserAccount };
+    const login = (req, res) => {
+        debug('post request on /api/auth/login');
+        debug(req.body);
+
+        passport.authenticate('login', (err, user) => {
+            if(err) {
+                debug('err:', err);
+                res.send(err);
+            } else {
+                debug('user:', user);
+                res.json(user.toAuthJSON());
+            }
+        })(req, res);
+    }
+
+    return { createUserAccount, login };
 };
 
 module.exports = authController;
