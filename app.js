@@ -11,7 +11,6 @@ require('./src/models/User');
 require('./src/config/passport');
 const authenticateJWT = require('./src/middleware/authenticateJWT');
 const authenticateAdminJWT = require('./src/middleware/authenticateAdminJWT');
-// const jwt = require('jsonwebtoken');
 
 const bodyParser = require('body-parser');
 
@@ -27,7 +26,6 @@ const timetablesRouters = require('./src/routes/timetablesRoutes')();
 app.use(cors({ origin: true, credentials: true }));
 
 app.use(cookieParser());
-// app.use(session({ secret: process.env.EXPRESS_SESSION_SECRET })); // TODO: Revise this?
 
 app.use(passport.initialize());
 
@@ -38,6 +36,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/api/admin', authenticateAdminJWT, adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/timetables', authenticateJWT, timetablesRouters);
-app.get('/', (req, res) => res.send('My backend server!'));
+app.get('/', (req, res) => res.send('Caltrain Delay Watch backend server'));
 
 app.listen(port, () => debug(`Server running on port ${port}`));
