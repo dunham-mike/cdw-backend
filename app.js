@@ -9,6 +9,8 @@ const session = require('express-session');
 const morgan = require('morgan');
 require('./src/models/User');
 require('./src/config/passport');
+const authenticateJWT = require('./src/middleware/authenticateJWT');
+const authenticateAdminJWT = require('./src/middleware/authenticateAdminJWT');
 // const jwt = require('jsonwebtoken');
 
 const bodyParser = require('body-parser');
@@ -33,9 +35,9 @@ app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use('/api/admin', adminRouter);
+app.use('/api/admin', authenticateAdminJWT, adminRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/timetables', timetablesRouters);
+app.use('/api/timetables', authenticateJWT, timetablesRouters);
 app.get('/', (req, res) => res.send('My backend server!'));
 
 app.listen(port, () => debug(`Server running on port ${port}`));
