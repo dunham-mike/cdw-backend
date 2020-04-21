@@ -10,24 +10,24 @@ passport.use('create-account', new LocalStrategy({
 }, (email, password, done) => {
     try {
         debug('trying create-account');
-        User.findOne({
-            where: {
-                email: email,
-            },
-        }).then(user => {
-            if(user !== null) {
-                debug('email address already registered');
-                return done(null, false, { message: 'email address is already registered '});
-            } else {
-                debug('trying to create a User in Mongo!');
-                const newUser = new User();
-                newUser.email = email;
-                newUser.setPassword(password);
-                newUser.save();
-                debug('user created');
-                return done(null, newUser);
-            }
-        })
+        debug('email:', email);
+        debug('password:', password);
+        User.findOne({ email: email })
+            .then(user => {
+                debug('userResult:', user);
+                if(user !== null) {
+                    debug('Email address already registered');
+                    return done('Email address is already registered');
+                } else {
+                    debug('trying to create a User in Mongo!');
+                    const newUser = new User();
+                    newUser.email = email;
+                    newUser.setPassword(password);
+                    newUser.save();
+                    debug('user created');
+                    return done(null, newUser);
+                }
+            })
     } catch(err) {
         done(err);
     }
