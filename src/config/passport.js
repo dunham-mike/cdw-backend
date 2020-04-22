@@ -16,8 +16,8 @@ passport.use('create-account', new LocalStrategy({
             .then(user => {
                 debug('userResult:', user);
                 if(user !== null) {
-                    debug('Email address already registered');
-                    return done('Email address is already registered');
+                    debug('Email address already registered.');
+                    return done('Email address is already registered.');
                 } else {
                     debug('trying to create a User in Mongo!');
                     const newUser = new User();

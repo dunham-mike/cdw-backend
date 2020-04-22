@@ -14,7 +14,7 @@ const authController = () => {
             if(err) {
                 res.send(err);
             } else {
-                res.send('Account successfully created');
+                res.send('Account successfully created.');
             }
         })(req, res);
     }
