@@ -16,7 +16,10 @@ const UserSchema = new mongoose.Schema({
     },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     hash: String,
-    salt: String
+    salt: String,
+    appData: {
+        type: mongoose.Schema.Types.Mixed
+    }
 }, {timestamps: true});
 
 UserSchema.methods.setPassword = function(password){
