@@ -1,5 +1,6 @@
 const debug = require('debug')('app:trainsWatchedController');
 const User = require('../models/User');
+const WatchedTrain = require('../models/WatchedTrain');
 
 const trainsWatchedController = () => {
     const getWatchedTrains = (req, res) => {
@@ -51,12 +52,11 @@ const trainsWatchedController = () => {
                 throw new Error(errorMessage);
             };
 
-            // TODO: Next, create TrainWatched schema
-            const trainWatchedObject = await getTrainWatchedOrCreateIt(trainInfo);
+            const watchedTrainObject = await getWatchedTrainOrCreateIt(trainInfo);
 
-            await clearExistingTrainWatchedForUser(userObject, trainWatchedObject, commuteType);
+            await clearExistingTrainWatchedForUser(userObject, watchedTrainObject, commuteType);
 
-            await addNewTrainWatchedForUser(userObject, trainWatchedObject, commuteType);
+            await addNewTrainWatchedForUser(userObject, watchedTrainObject, commuteType);
 
             res.send('Watched Train successfully updated.');
         } catch(err) {
@@ -150,12 +150,7 @@ const confirmAppDataExistsForUserOrAddIt = async (userObject) => {
 }
 
 const isUpdateActualChange = (userObject, commuteType, trainInfo) => {
-    let relevantTrain = null;
-    if(commuteType === "AM") {
-        relevantTrain = userObject.appData.amTrainWatched;
-    } else if(commuteType === "PM") {
-        relevantTrain = userObject.appData.pmTrainWatched;
-    }
+    let relevantTrain = getRelevantAmOrPmTrainFromUserObject(userObject, commuteType);
 
     if(Object.keys(relevantTrain).length === 0) {
         debug("No existing train for this commuteType.");
@@ -174,17 +169,64 @@ const isUpdateActualChange = (userObject, commuteType, trainInfo) => {
     return true;
 }
 
-const getTrainWatchedOrCreateIt = async (trainInfo) => {
-    debug('confirmTrainExistsInTrainsWatchedCollectionOrAddIt()');
-    // TODO: complete this
+const getWatchedTrainOrCreateIt = async (trainInfo) => {
+    return new Promise((resolve, reject) => {
+        WatchedTrain.findOne({
+            operator: trainInfo.operator,
+            scheduleType: trainInfo.scheduleType,
+            active: true,
+            'trainInfo.station': trainInfo.station,
+            'trainInfo.direction': trainInfo.direction,
+            'trainInfo.time': trainInfo.time,
+            'trainInfo.trainNumber': trainInfo.trainNumber
+        })
+            .then((watchedTrain) => {
+                if(watchedTrain) {
+                    debug('watchedTrain found:', watchedTrain);
+                    resolve(watchedTrain);
+                } else {
+                    debug('trying to create a WatchedTrain in Mongo!');
+                    const newWatchedTrain = new WatchedTrain();
+                    newWatchedTrain.operator = trainInfo.operator;
+                    newWatchedTrain.scheduleType = trainInfo.scheduleType;
+                    newWatchedTrain.active = true;
+                    newWatchedTrain.trainInfo = {
+                        station: trainInfo.station,
+                        direction: trainInfo.direction,
+                        time: trainInfo.time,
+                        trainNumber: trainInfo.trainNumber
+                    }
+                    newWatchedTrain.save();
+                    debug('WatchedTrain created');
+                    resolve(newWatchedTrain);
+                }
+            })
+            .catch((err) => {
+                debug(err);
+                reject(err);
+            })
+    });
 }
 
-const clearExistingTrainWatchedForUser = async (userObject, trainWatchedObject, commuteType) => {
+const getRelevantAmOrPmTrainFromUserObject = (userObject, commuteType) => {
+    let relevantTrain = null;
+    if(commuteType === "AM") {
+        relevantTrain = userObject.appData.amTrainWatched;
+    } else if(commuteType === "PM") {
+        relevantTrain = userObject.appData.pmTrainWatched;
+    }
+
+    return relevantTrain;
+}
+
+const clearExistingTrainWatchedForUser = async (userObject, watchedTrainObject, commuteType) => {
+    const relevantTrain = getRelevantAmOrPmTrainFromUserObject(userObject, commuteType);
+
     debug('clearExistingTrainWatchedForUser()');
     // TODO: complete this
 }
 
-const addNewTrainWatchedForUser = async (userObject, trainWatchedObject, commuteType) => {
+const addNewTrainWatchedForUser = async (userObject, watchedTrainObject, commuteType) => {
     debug('addUpdatedTrainWatchedForUserAndInTrainsWatched()');
     // TODO: complete this 
 }
