@@ -22,7 +22,7 @@ connectDB();
 const adminRouter = require('./src/routes/adminRoutes')();
 const authRouter = require('./src/routes/authRoutes')();
 const timetablesRouter = require('./src/routes/timetablesRoutes')();
-const trainsWatchedRouter = require('./src/routes/trainsWatchedRoutes')();
+const watchedTrainsRouter = require('./src/routes/watchedTrainsRoutes')();
 
 app.use(cors({ origin: true, credentials: true }));
 
@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/api/admin', authenticateAdminJWT, adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/timetables', authenticateJWT, timetablesRouter);
-app.use('/api/trains-watched', authenticateJWT, trainsWatchedRouter);
+app.use('/api/watched-trains', authenticateJWT, watchedTrainsRouter);
 app.get('/', (req, res) => res.send('Caltrain Delay Watch backend server'));
 
 app.listen(port, () => debug(`Server running on port ${port}`));

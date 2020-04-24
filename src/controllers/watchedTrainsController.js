@@ -1,8 +1,8 @@
-const debug = require('debug')('app:trainsWatchedController');
+const debug = require('debug')('app:watchedTrainsController');
 const User = require('../models/User');
 const WatchedTrain = require('../models/WatchedTrain');
 
-const trainsWatchedController = () => {
+const watchedTrainsController = () => {
     const getWatchedTrains = (req, res) => {
         debug('get request on /trains-watched');
 
@@ -100,7 +100,7 @@ const trainsWatchedController = () => {
             Notes:
                 If appData structure does not exist for user, add it.
                 API should should check that this is really a change. If not, send back an error message.
-                If train does not exist in TrainsWatched, add it.
+                If train does not exist in WatchedTrains, add it.
         */
     }
 
@@ -302,4 +302,4 @@ const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) 
     debug('Watched Train updated!');
 }
 
-module.exports = trainsWatchedController;
+module.exports = watchedTrainsController;
