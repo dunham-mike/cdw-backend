@@ -31,6 +31,10 @@ const watchedTrainsController = () => {
         */
     }
 
+    const clearWatchedTrain = async (req, res) => {
+        res.send('Clear Watched Train here.');
+    }
+
     const addOrUpdateWatchedTrain = async (req, res) => {
         debug('post request on /watched-trains');
 
@@ -84,7 +88,7 @@ const watchedTrainsController = () => {
         */
     }
 
-    return { getWatchedTrains, addOrUpdateWatchedTrain };
+    return { getWatchedTrains, clearWatchedTrain, addOrUpdateWatchedTrain };
 };
 
 /* --- Helper Functions --- */
