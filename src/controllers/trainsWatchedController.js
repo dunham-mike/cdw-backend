@@ -26,7 +26,6 @@ const trainsWatchedController = () => {
         /* 
             TODO Next Steps:
             - Refactor this big function into stages
-            - See what can be un-async'ed
         */
 
         if(!updateHasCorrectParameters(commuteType, trainInfo)) {
@@ -38,7 +37,7 @@ const trainsWatchedController = () => {
 
             debug('userObject:', userObject);
 
-            await confirmAppDataExistsForUserOrAddIt(userObject);
+            confirmAppDataExistsForUserOrAddIt(userObject);
             debug('appData:', userObject.appData);
 
             const existingWatchedTrainObject = await getExistingWatchedTrain(userObject, commuteType);
@@ -50,9 +49,9 @@ const trainsWatchedController = () => {
 
             const newWatchedTrainObject = await getNewWatchedTrainOrCreateIt(trainInfo);
 
-            await clearExistingWatchedTrainForUser(userObject, existingWatchedTrainObject, commuteType);
+            clearExistingWatchedTrainForUser(userObject, existingWatchedTrainObject, commuteType);
 
-            await addNewWatchedTrainForUser(userObject, newWatchedTrainObject, commuteType);
+            addNewWatchedTrainForUser(userObject, newWatchedTrainObject, commuteType);
 
             if (existingWatchedTrainObject) {
                 debug('saving existingWatchedTrainObject');
@@ -147,20 +146,16 @@ const getUserObjectByUserId = async (userId) => {
     });
 }
 
-const confirmAppDataExistsForUserOrAddIt = async (userObject) => {
-    return new Promise(async (resolve, reject) => {
-        if(!userObject.appData) {
-            debug('creating appData on userObject');
-            userObject.appData = {
-                amWatchedTrain: null,
-                pmWatchedTrain: null,
-                alerts: null
-            }
-            debug(userObject);
-            // await userObject.save();
+const confirmAppDataExistsForUserOrAddIt = (userObject) => {
+    if(!userObject.appData) {
+        debug('creating appData on userObject');
+        userObject.appData = {
+            amWatchedTrain: null,
+            pmWatchedTrain: null,
+            alerts: null
         }
-        resolve();
-    });
+        debug(userObject);
+    }
 }
 
 const getExistingWatchedTrain = async (userObject, commuteType) => {
@@ -239,7 +234,6 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
                         time: trainInfo.time,
                         trainNumber: trainInfo.trainNumber
                     }
-                    // newWatchedTrain.save();
                     debug('WatchedTrain created');
                     resolve(newWatchedTrain);
                 }
@@ -264,63 +258,48 @@ const getRelevantAmOrPmTrainIdFromUserObject = (userObject, commuteType) => {
     return relevantTrainId;
 }
 
-const clearExistingWatchedTrainForUser = async (userObject, watchedTrainObject, commuteType) => {
-    return new Promise((resolve, reject) => {
-        debug('clearExistingWatchedTrainForUser() before:');
-        debug(userObject);
-        debug(watchedTrainObject);
+const clearExistingWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
+    debug('clearExistingWatchedTrainForUser() before:');
+    debug(userObject);
+    debug(watchedTrainObject);
 
-        if(commuteType === "AM") {
-            userObject.appData.amWatchedTrain = null;
-        } else if(commuteType === "PM") {
-            userObject.appData.pmWatchedTrain = null;
-        }
-        // userObject.save();
+    if(commuteType === "AM") {
+        userObject.appData.amWatchedTrain = null;
+    } else if(commuteType === "PM") {
+        userObject.appData.pmWatchedTrain = null;
+    }
 
-        if(watchedTrainObject && watchedTrainObject.usersWatching) {
-            watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
-            // watchedTrainObject.save();
-        }
+    if(watchedTrainObject && watchedTrainObject.usersWatching) {
+        watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
+    }
 
-        
-
-        debug('clearExistingWatchedTrainForUser() after:');
-        debug(userObject);
-        debug(watchedTrainObject);
-
-        resolve();
-    });
-    // const relevantTrainId = getRelevantAmOrPmTrainIdFromUserObject(userObject, commuteType);
     
+
+    debug('clearExistingWatchedTrainForUser() after:');
+    debug(userObject);
+    debug(watchedTrainObject);
 }
 
-const addNewWatchedTrainForUser = async (userObject, watchedTrainObject, commuteType) => {
-    return new Promise((resolve, reject) => {
-        debug('addNewWatchedTrainForUser()');
+const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
+    debug('addNewWatchedTrainForUser()');
 
-        const watchedTrainObjectId = watchedTrainObject._id;
+    const watchedTrainObjectId = watchedTrainObject._id;
 
-        if(commuteType === "AM") {
-            userObject.appData.amWatchedTrain = watchedTrainObjectId;
-        } else if(commuteType === "PM") {
-            userObject.appData.pmWatchedTrain = watchedTrainObjectId;
+    if(commuteType === "AM") {
+        userObject.appData.amWatchedTrain = watchedTrainObjectId;
+    } else if(commuteType === "PM") {
+        userObject.appData.pmWatchedTrain = watchedTrainObjectId;
+    }
+
+    if (watchedTrainObject.usersWatching === null) {
+        watchedTrainObject.usersWatching = {
+            [userObject._id.toString()]: true,
         }
-        // userObject.save();
+    } else {
+        watchedTrainObject.usersWatching[userObject._id.toString()] = true;
+    }
 
-        if (watchedTrainObject.usersWatching === null) {
-            watchedTrainObject.usersWatching = {
-                [userObject._id.toString()]: true,
-            }
-        } else {
-            watchedTrainObject.usersWatching[userObject._id.toString()] = true;
-        }
-        // watchedTrainObject.save();
-
-        debug('Watched Train updated!');
-
-        resolve();
-    });
-    
+    debug('Watched Train updated!');
 }
 
 module.exports = trainsWatchedController;
