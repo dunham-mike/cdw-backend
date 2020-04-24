@@ -20,6 +20,10 @@ const WatchedTrainSchema = new mongoose.Schema({
         required: true,
         default: true,
     },
+    usersWatching: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null,
+    },
     trainInfo: {
         station: {
             type: String,

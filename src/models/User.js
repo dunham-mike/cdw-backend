@@ -18,7 +18,12 @@ const UserSchema = new mongoose.Schema({
     hash: String,
     salt: String,
     appData: {
-        type: mongoose.Schema.Types.Mixed
+        amWatchedTrain: { type: mongoose.ObjectId, default: null },
+        pmWatchedTrain: { type: mongoose.ObjectId, default: null },
+        alerts: { 
+            type: [mongoose.ObjectId], 
+            default: null 
+        }
     }
 }, {timestamps: true});
 

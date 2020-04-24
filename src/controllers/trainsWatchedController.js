@@ -23,16 +23,11 @@ const trainsWatchedController = () => {
         const commuteType = req.body.commuteType;
         const trainInfo = req.body.trainInfo;
 
-        // Data Needed
-        debug(userId);
-        debug(commuteType);
-        debug(trainInfo.operator);
-        debug(trainInfo.scheduleType);
-        debug(trainInfo.station);
-        debug(trainInfo.direction);
-        debug(trainInfo.time);
-        debug(trainInfo.trainNumber);
-        debug('---firing functions---');
+        /* 
+            TODO Next Steps:
+            - Refactor this big function into stages
+            - See what can be un-async'ed
+        */
 
         if(!updateHasCorrectParameters(commuteType, trainInfo)) {
             res.status(400).send('Request body does not have expected data.');
@@ -46,22 +41,40 @@ const trainsWatchedController = () => {
             await confirmAppDataExistsForUserOrAddIt(userObject);
             debug('appData:', userObject.appData);
 
-            if (!isUpdateActualChange(userObject, commuteType, trainInfo)) {
+            const existingWatchedTrainObject = await getExistingWatchedTrain(userObject, commuteType);
+
+            if (!isUpdateActualChange(existingWatchedTrainObject, trainInfo)) {
                 const errorMessage = 'Watched Train did not update. Existing Watched Train matches new Watched Train provided.';
-                res.status(400).send(errorMessage);
                 throw new Error(errorMessage);
             };
 
-            const watchedTrainObject = await getWatchedTrainOrCreateIt(trainInfo);
+            const newWatchedTrainObject = await getNewWatchedTrainOrCreateIt(trainInfo);
 
-            await clearExistingTrainWatchedForUser(userObject, watchedTrainObject, commuteType);
+            await clearExistingWatchedTrainForUser(userObject, existingWatchedTrainObject, commuteType);
 
-            await addNewTrainWatchedForUser(userObject, watchedTrainObject, commuteType);
+            await addNewWatchedTrainForUser(userObject, newWatchedTrainObject, commuteType);
+
+            if (existingWatchedTrainObject) {
+                debug('saving existingWatchedTrainObject');
+                existingWatchedTrainObject.save();
+            }
+            userObject.save();
+            newWatchedTrainObject.save();
+
+            debug('---existingTrainObject---');
+            debug(existingWatchedTrainObject);
+
+            debug('---newTrainObject---');
+            debug(newWatchedTrainObject);
 
             res.send('Watched Train successfully updated.');
         } catch(err) {
             debug(err);
-            res.sendStatus(500);
+            if(err.message === 'Watched Train did not update. Existing Watched Train matches new Watched Train provided.') {
+                res.status(400).send(err.message);
+            } else {
+                res.sendStatus(500);
+            }
         }
         
 
@@ -137,25 +150,54 @@ const getUserObjectByUserId = async (userId) => {
 const confirmAppDataExistsForUserOrAddIt = async (userObject) => {
     return new Promise(async (resolve, reject) => {
         if(!userObject.appData) {
+            debug('creating appData on userObject');
             userObject.appData = {
-                amTrainWatched: {},
-                pmTrainWatched: {},
-                alerts: []
+                amWatchedTrain: null,
+                pmWatchedTrain: null,
+                alerts: null
             }
             debug(userObject);
-            await userObject.save();
+            // await userObject.save();
         }
         resolve();
     });
 }
 
-const isUpdateActualChange = (userObject, commuteType, trainInfo) => {
-    let relevantTrain = getRelevantAmOrPmTrainFromUserObject(userObject, commuteType);
+const getExistingWatchedTrain = async (userObject, commuteType) => {
+    return new Promise((resolve, reject) => {
+        const relevantTrainId = getRelevantAmOrPmTrainIdFromUserObject(userObject, commuteType);
 
-    if(Object.keys(relevantTrain).length === 0) {
-        debug("No existing train for this commuteType.");
+        debug('relevantTrainId:', relevantTrainId);
+
+        if(relevantTrainId == null || relevantTrainId == undefined) {
+            resolve(null);
+        } else {
+            WatchedTrain.findOne({
+                _id: relevantTrainId
+            })
+                .then((watchedTrain) => {
+                    if(watchedTrain) {
+                        debug('existing WatchedTrain found:', watchedTrain);
+                        resolve(watchedTrain);
+                    } else {
+                        throw new Error('Could not find a WatchedTrain for this WatchedTrainId.');
+                        reject(err);
+                    }
+                })
+                .catch((err) => {
+                    debug(err);
+                    reject(err);
+                })
+        }
+    });
+}
+
+const isUpdateActualChange = (existingWatchedTrainObject, trainInfo) => {
+    if(existingWatchedTrainObject === null) {
         return true;
     }
+
+    const relevantTrain = existingWatchedTrainObject.trainInfo;
 
     if(relevantTrain.station === trainInfo.station 
         && relevantTrain.direction === trainInfo.direction 
@@ -169,7 +211,7 @@ const isUpdateActualChange = (userObject, commuteType, trainInfo) => {
     return true;
 }
 
-const getWatchedTrainOrCreateIt = async (trainInfo) => {
+const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
     return new Promise((resolve, reject) => {
         WatchedTrain.findOne({
             operator: trainInfo.operator,
@@ -190,13 +232,14 @@ const getWatchedTrainOrCreateIt = async (trainInfo) => {
                     newWatchedTrain.operator = trainInfo.operator;
                     newWatchedTrain.scheduleType = trainInfo.scheduleType;
                     newWatchedTrain.active = true;
+                    newWatchedTrain.usersWatching = null;
                     newWatchedTrain.trainInfo = {
                         station: trainInfo.station,
                         direction: trainInfo.direction,
                         time: trainInfo.time,
                         trainNumber: trainInfo.trainNumber
                     }
-                    newWatchedTrain.save();
+                    // newWatchedTrain.save();
                     debug('WatchedTrain created');
                     resolve(newWatchedTrain);
                 }
@@ -208,28 +251,76 @@ const getWatchedTrainOrCreateIt = async (trainInfo) => {
     });
 }
 
-const getRelevantAmOrPmTrainFromUserObject = (userObject, commuteType) => {
-    let relevantTrain = null;
+const getRelevantAmOrPmTrainIdFromUserObject = (userObject, commuteType) => {
+    let relevantTrainId = null;
     if(commuteType === "AM") {
-        relevantTrain = userObject.appData.amTrainWatched;
+        relevantTrainId = userObject.appData.amWatchedTrain;
     } else if(commuteType === "PM") {
-        relevantTrain = userObject.appData.pmTrainWatched;
+        relevantTrainId = userObject.appData.pmWatchedTrain;
     }
 
-    return relevantTrain;
+    debug('relevantTrainId:', relevantTrainId);
+
+    return relevantTrainId;
 }
 
-const clearExistingTrainWatchedForUser = async (userObject, watchedTrainObject, commuteType) => {
-    const relevantTrain = getRelevantAmOrPmTrainFromUserObject(userObject, commuteType);
+const clearExistingWatchedTrainForUser = async (userObject, watchedTrainObject, commuteType) => {
+    return new Promise((resolve, reject) => {
+        debug('clearExistingWatchedTrainForUser() before:');
+        debug(userObject);
+        debug(watchedTrainObject);
 
-    debug('clearExistingTrainWatchedForUser()');
-    // TODO: complete this
+        if(commuteType === "AM") {
+            userObject.appData.amWatchedTrain = null;
+        } else if(commuteType === "PM") {
+            userObject.appData.pmWatchedTrain = null;
+        }
+        // userObject.save();
+
+        if(watchedTrainObject && watchedTrainObject.usersWatching) {
+            watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
+            // watchedTrainObject.save();
+        }
+
+        
+
+        debug('clearExistingWatchedTrainForUser() after:');
+        debug(userObject);
+        debug(watchedTrainObject);
+
+        resolve();
+    });
+    // const relevantTrainId = getRelevantAmOrPmTrainIdFromUserObject(userObject, commuteType);
+    
 }
 
-const addNewTrainWatchedForUser = async (userObject, watchedTrainObject, commuteType) => {
-    debug('addUpdatedTrainWatchedForUserAndInTrainsWatched()');
-    // TODO: complete this 
-}
+const addNewWatchedTrainForUser = async (userObject, watchedTrainObject, commuteType) => {
+    return new Promise((resolve, reject) => {
+        debug('addNewWatchedTrainForUser()');
 
+        const watchedTrainObjectId = watchedTrainObject._id;
+
+        if(commuteType === "AM") {
+            userObject.appData.amWatchedTrain = watchedTrainObjectId;
+        } else if(commuteType === "PM") {
+            userObject.appData.pmWatchedTrain = watchedTrainObjectId;
+        }
+        // userObject.save();
+
+        if (watchedTrainObject.usersWatching === null) {
+            watchedTrainObject.usersWatching = {
+                [userObject._id.toString()]: true,
+            }
+        } else {
+            watchedTrainObject.usersWatching[userObject._id.toString()] = true;
+        }
+        // watchedTrainObject.save();
+
+        debug('Watched Train updated!');
+
+        resolve();
+    });
+    
+}
 
 module.exports = trainsWatchedController;
