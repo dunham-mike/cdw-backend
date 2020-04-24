@@ -34,6 +34,21 @@ const watchedTrainsController = () => {
     const clearWatchedTrain = async (req, res) => {
         debug('delete request on /watched-trains');
 
+        // TODO: Set up testing for Node/Mongoose. 
+            // Approach:
+                // Use mongodb-memory-server to spin up an in-memory database rather than host one locally: https://github.com/nodkz/mongodb-memory-server and https://dev.to/paulasantamaria/testing-node-js-mongoose-with-an-in-memory-database-32np
+                // Use NODE_ENV to have mongoose connect to the in-memory database when running tests: https://scotch.io/tutorials/test-a-node-restful-api-with-mocha-and-chai
+                // Send HTTP requests with Jest: https://zellwk.com/blog/jest-and-mongoose/
+                // Alternately, supertest can send HTTP requests: https://itnext.io/writing-tests-in-your-node-js-api-application-cfb5592df466
+            // Resources:
+                // Connecting Jest & Mongoose: https://zellwk.com/blog/jest-and-mongoose/
+                // Mocha: https://blog.bitsrc.io/build-a-unit-testing-suite-with-mocha-and-mongoose-eba06c3b3625
+                // In-memory database: https://dev.to/paulasantamaria/testing-node-js-mongoose-with-an-in-memory-database-32np
+                // Node API: https://itnext.io/writing-tests-in-your-node-js-api-application-cfb5592df466
+                // Node API: https://scotch.io/tutorials/test-a-node-restful-api-with-mocha-and-chai
+        // TODO: Refactor correct parameters functions into checkDeleteParameters and checkPostParameters that throw errors themselves.
+        // TODO: Refactor delete function to use helpers to get data.
+        // TODO: Create a saveMongooseObjects() function that takes an array of objects and saves them. Then refactor update and delete to use this function explicitly in the main try catch.
         // TODO: Refactor error messages to have statusCode and message.
 
         try {
