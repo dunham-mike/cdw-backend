@@ -6,9 +6,9 @@ const watchedTrainsController = () => {
     const getWatchedTrains = async (req, res) => {
         debug('get request on /watched-trains');
 
-        const userId = req.user.id;
-
         try {
+            const userId = req.user.id;
+
             const userObject = await getUserObjectByUserId(userId);
             const amWatchedTrain = await getExistingWatchedTrainForUser(userObject, "AM");
             const pmWatchedTrain = await getExistingWatchedTrainForUser(userObject, "PM");
@@ -32,23 +32,64 @@ const watchedTrainsController = () => {
     }
 
     const clearWatchedTrain = async (req, res) => {
-        res.send('Clear Watched Train here.');
+        debug('delete request on /watched-trains');
+
+        // TODO: Refactor error messages to have statusCode and message.
+
+        try {
+            const userId = req.user.id;
+            const commuteType = req.body.commuteType;
+
+            if(!clearHasCorrectParameters(commuteType)) {
+                throw new Error('Request body does not have expected data.')
+            }
+
+            const userObject = await getUserObjectByUserId(userId);
+
+            const existingWatchedTrainObject = await getExistingWatchedTrainForUser(userObject, commuteType);
+            if(existingWatchedTrainObject === null) {
+                throw new Error('User does not have an existing Watched Train for this commute type.')
+            }
+
+            clearExistingWatchedTrainForUser(userObject, existingWatchedTrainObject, commuteType);
+
+            userObject.save();
+            existingWatchedTrainObject.save();
+
+            res.send('Watched Train successfully cleared.');
+        } catch(err) {
+            debug(err.message);
+            if(err.message === 'Request body does not have expected data.'
+                || err.message === 'User does not have an existing Watched Train for this commute type.'
+            ) {
+                    res.status(400).send(err.message);
+                } else {
+                    res.sendStatus(500);
+                }
+        }
+
+        /* 
+            API: Clear AM or PM train for this token's user.
+            Authorization: Bearer token
+            Parameters (all required):
+                {
+                    "commuteType": "AM", // or "PM"
+                }
+        */
     }
 
     const addOrUpdateWatchedTrain = async (req, res) => {
         debug('post request on /watched-trains');
 
-        const userId = req.user.id;
-        const commuteType = req.body.commuteType;
-        const trainInfo = req.body.trainInfo;
-
-        // TODO: Allow clearing of WatchedTrain
-
-        if(!updateHasCorrectParameters(commuteType, trainInfo)) {
-            res.status(400).send('Request body does not have expected data.');
-        }
-
         try {
+            const userId = req.user.id;
+            const commuteType = req.body.commuteType;
+            const trainInfo = req.body.trainInfo;
+
+            if(!updateHasCorrectParameters(commuteType, trainInfo)) {
+                throw new Error('Request body does not have expected data.')
+            }
+
             const { userObject, existingWatchedTrainObject, newWatchedTrainObject } 
                 = await prepareUserAndTrainObjects(userId, commuteType, trainInfo);
             await updateExistingAndNewWatchedTrains(userObject, existingWatchedTrainObject, newWatchedTrainObject, commuteType);
@@ -63,7 +104,9 @@ const watchedTrainsController = () => {
             res.send('Watched Train successfully updated.');
         } catch(err) {
             debug(err.message);
-            if(err.message === 'Watched Train did not update. Existing Watched Train matches new Watched Train provided.') {
+            if(err.message === 'Watched Train did not update. Existing Watched Train matches new Watched Train provided.'
+                || err.message === 'Request body does not have expected data.'
+            ) {
                 res.status(400).send(err.message);
             } else {
                 res.sendStatus(500);
@@ -135,6 +178,18 @@ const getExistingWatchedTrainForUser = async (userObject, commuteType) => {
     });
 }
 
+const clearExistingWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
+    if(commuteType === "AM") {
+        userObject.appData.amWatchedTrain = null;
+    } else if(commuteType === "PM") {
+        userObject.appData.pmWatchedTrain = null;
+    }
+
+    if(watchedTrainObject && watchedTrainObject.usersWatching) {
+        watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
+    }
+}
+
 /* --- GET Functions --- */
 
 const convertWatchedTrainToOutput = (watchedTrainObject) => {
@@ -146,6 +201,16 @@ const convertWatchedTrainToOutput = (watchedTrainObject) => {
     }
 
     return watchedTrainOutput;
+}
+
+/* --- DELETE Functions --- */
+
+const clearHasCorrectParameters = (commuteType) => {
+    if(commuteType !== "AM" && commuteType !== "PM") {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 /* --- POST Functions --- */
@@ -275,18 +340,6 @@ const updateExistingAndNewWatchedTrains = async (userObject, existingWatchedTrai
     }
     userObject.save();
     newWatchedTrainObject.save();
-}
-
-const clearExistingWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
-    if(commuteType === "AM") {
-        userObject.appData.amWatchedTrain = null;
-    } else if(commuteType === "PM") {
-        userObject.appData.pmWatchedTrain = null;
-    }
-
-    if(watchedTrainObject && watchedTrainObject.usersWatching) {
-        watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
-    }
 }
 
 const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
