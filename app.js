@@ -11,6 +11,7 @@ require('./src/models/User');
 require('./src/config/passport');
 const authenticateJWT = require('./src/middleware/authenticateJWT');
 const authenticateAdminJWT = require('./src/middleware/authenticateAdminJWT');
+const runScheduledJobs = require('./src/scheduling/scheduledJobs');
 
 const bodyParser = require('body-parser');
 
@@ -23,6 +24,9 @@ const adminRouter = require('./src/routes/adminRoutes')();
 const authRouter = require('./src/routes/authRoutes')();
 const timetablesRouter = require('./src/routes/timetablesRoutes')();
 const watchedTrainsRouter = require('./src/routes/watchedTrainsRoutes')();
+
+process.env.TZ = 'America/Los_Angeles'; // To make sure alert monitoring runs on the right days of the week, regardless of server time zone
+runScheduledJobs();
 
 app.use(cors({ origin: true, credentials: true }));
 
