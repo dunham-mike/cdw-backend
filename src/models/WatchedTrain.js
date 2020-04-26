@@ -24,6 +24,10 @@ const WatchedTrainSchema = new mongoose.Schema({
             type: String,
             required: true,
         },
+        stopId: {
+            type: String,
+            required: true,
+        },
         direction: {
             type: String,
             required: true,

@@ -306,6 +306,7 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
             scheduleType: trainInfo.scheduleType,
             active: true,
             'trainInfo.station': trainInfo.station,
+            'trainInfo.stopId': trainInfo.stopId,
             'trainInfo.direction': trainInfo.direction,
             'trainInfo.time': trainInfo.time,
             'trainInfo.trainNumber': trainInfo.trainNumber
@@ -321,11 +322,12 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
                     newWatchedTrain.usersWatching = null;
                     newWatchedTrain.trainInfo = {
                         station: trainInfo.station,
+                        stopId: trainInfo.stopId,
                         direction: trainInfo.direction,
                         time: trainInfo.time,
                         trainNumber: trainInfo.trainNumber
                     }
-                    resolve(newWatchedTrain);
+                    resolve(newWatchedTrain);                    
                 }
             })
             .catch((err) => {
