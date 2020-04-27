@@ -10,16 +10,16 @@ const runScheduledJobs = () => {
 const kickoffCaltrainDelayMonitoring = () => {
 
     // For testing -- TODO: remove this when feature is complete
-    const caltrainTestingRule = new schedule.RecurrenceRule();
-    caltrainTestingRule.dayOfWeek = 0; 
-    caltrainTestingRule.minute = new schedule.Range(0, 59, 2);
-    const testingCaltrainMonitoringJob = schedule.scheduleJob(caltrainTestingRule, weekdayCaltrainMonitoring);
+    // const caltrainTestingRule = new schedule.RecurrenceRule();
+    // caltrainTestingRule.dayOfWeek = 0; 
+    // caltrainTestingRule.minute = new schedule.Range(0, 59, 1);
+    // const testingCaltrainMonitoringJob = schedule.scheduleJob(caltrainTestingRule, weekdayCaltrainMonitoring);
 
     // Monday: 4 am to 11:59 pm, to ignore any late Sunday trains
     const caltrainMondayRule = new schedule.RecurrenceRule();
     caltrainMondayRule.dayOfWeek = 1;
     caltrainMondayRule.hour = new schedule.Range(4, 23);
-    caltrainMondayRule.minute = new schedule.Range(0, 59, 5);
+    caltrainMondayRule.minute = new schedule.Range(0, 59, 1); // TODO: Change back to 5
     const mondayCaltrainMonitoringJob = schedule.scheduleJob(caltrainMondayRule, weekdayCaltrainMonitoring);
 
     // Tuesday-Friday: 12:00 am to 11:59 pm
