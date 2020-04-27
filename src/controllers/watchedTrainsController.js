@@ -1,7 +1,7 @@
 const debug = require('debug')('app:watchedTrainsController');
 const User = require('../models/User');
 const WatchedTrain = require('../models/WatchedTrain');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const watchedTrainsController = () => {
     const getWatchedTrains = async (req, res) => {
@@ -215,7 +215,9 @@ const convertWatchedTrainToOutput = (watchedTrainObject) => {
         watchedTrainOutput = (({ operator, scheduleType, trainInfo }) => ({ operator, scheduleType, trainInfo }))(watchedTrainObject);
         // Technique from: https://stackoverflow.com/a/39333479/12881705
 
-        watchedTrainOutput.trainInfo.time = moment(watchedTrainOutput.trainInfo.time).format('h:mm a');
+        const newTrainInfo = { ...watchedTrainOutput.trainInfo };
+        watchedTrainOutput.trainInfo = newTrainInfo;
+        watchedTrainOutput.trainInfo.time = moment(watchedTrainOutput.trainInfo.time).tz("America/Los_Angeles").format('h:mm a');
     }
 
     return watchedTrainOutput;

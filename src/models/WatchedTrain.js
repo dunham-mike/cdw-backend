@@ -34,7 +34,7 @@ const WatchedTrainSchema = new mongoose.Schema({
             enum: ['NB', 'SB'],
         },
         time: {
-            type: String,
+            type: Date,
             required: true,
         },
         trainNumber: {

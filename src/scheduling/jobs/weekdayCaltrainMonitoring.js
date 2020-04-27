@@ -23,8 +23,8 @@ const weekdayCaltrainMonitoring = async () => {
                     // If no, create alert and trigger notification for that user.
 
     try {
-        const queryBeginningTime = moment().subtract(30, 'minutes').tz("America/Los_Angeles").format('h:mm a');
-        const queryEndTime = moment().add(90, 'minutes').tz("America/Los_Angeles").format('h:mm a');
+        const queryBeginningTime = moment().subtract(30, 'minutes');
+        const queryEndTime = moment().add(90, 'minutes');
 
         WatchedTrain.find({
             operator: operator,
