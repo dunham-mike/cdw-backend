@@ -1,6 +1,7 @@
 const debug = require('debug')('app:watchedTrainsController');
 const User = require('../models/User');
 const WatchedTrain = require('../models/WatchedTrain');
+const moment = require('moment');
 
 const watchedTrainsController = () => {
     const getWatchedTrains = async (req, res) => {
@@ -139,7 +140,7 @@ const watchedTrainsController = () => {
                         "scheduleType": "Weekday", // Only schedule type supported now
                         "station": "Burlingame", // Must match name in timetables
                         "direction": "NB", // or "SB"
-                        "time": "8:08 am",
+                        "time": "8:08 am", // Will be converted to a UTC datetime for storage
                         "trainNumber": "207"
                     }
                 }
@@ -213,6 +214,8 @@ const convertWatchedTrainToOutput = (watchedTrainObject) => {
     if(watchedTrainObject) {
         watchedTrainOutput = (({ operator, scheduleType, trainInfo }) => ({ operator, scheduleType, trainInfo }))(watchedTrainObject);
         // Technique from: https://stackoverflow.com/a/39333479/12881705
+
+        watchedTrainOutput.trainInfo.time = moment(watchedTrainOutput.trainInfo.time).format('h:mm a');
     }
 
     return watchedTrainOutput;
@@ -289,7 +292,7 @@ const isUpdateActualChange = (existingWatchedTrainObject, trainInfo) => {
 
     if(relevantTrain.station === trainInfo.station 
         && relevantTrain.direction === trainInfo.direction 
-        && relevantTrain.time === trainInfo.time 
+        && moment(relevantTrain.time).tz("America/Los_Angeles").format('h:mm a') === trainInfo.time
         && relevantTrain.trainNumber === trainInfo.trainNumber 
     ) {
         debug("Existing train matches updated train.");
@@ -308,7 +311,7 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
             'trainInfo.station': trainInfo.station,
             'trainInfo.stopId': trainInfo.stopId,
             'trainInfo.direction': trainInfo.direction,
-            'trainInfo.time': trainInfo.time,
+            'trainInfo.time': moment('1970-01-01 ' + trainInfo.time),
             'trainInfo.trainNumber': trainInfo.trainNumber
         })
             .then((watchedTrain) => {
@@ -324,7 +327,7 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
                         station: trainInfo.station,
                         stopId: trainInfo.stopId,
                         direction: trainInfo.direction,
-                        time: trainInfo.time,
+                        time: moment('1970-01-01 ' + trainInfo.time),
                         trainNumber: trainInfo.trainNumber
                     }
                     resolve(newWatchedTrain);                    
