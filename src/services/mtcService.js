@@ -60,10 +60,10 @@ const mtcService = () => {
             - For a train reaching its destination (e.g., a northbound train reaching San Francisco), the API seems to return nothing.
         */
         return new Promise((resolve, reject) => {
-            axios.get(`http://api.511.org/transit/StopMonitoring?agency=${operatorId}
-                &api_key=${API_KEY}${stopId ? '&stopCode=' + stopId : ''}`)
+            axios.get(`http://api.511.org/transit/StopMonitoring?agency=${operatorId}&api_key=${API_KEY}${stopId ? '&stopCode=' + stopId : ''}`)
                 .then((response) => {
-                    resolve(response);
+                    debug(response.data);
+                    resolve(response.data);
                 })
                 .catch((error) => {
                     reject(error);
