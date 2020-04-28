@@ -3,6 +3,8 @@ const User = require('../models/User');
 const WatchedTrain = require('../models/WatchedTrain');
 const moment = require('moment-timezone');
 
+const NUMBER_OF_MOST_RECENT_NOTIFICATIONS_TO_RETURN = 5;
+
 const watchedTrainsController = () => {
     const getWatchedTrains = async (req, res) => {
         debug('get request on /watched-trains');
@@ -13,12 +15,16 @@ const watchedTrainsController = () => {
             const userObject = await getUserObjectByUserId(userId);
             const amWatchedTrain = await getExistingWatchedTrainForUser(userObject, "AM");
             const pmWatchedTrain = await getExistingWatchedTrainForUser(userObject, "PM");
+            const mostRecentNotificationObjects = userObject.appData.notifications.slice(-1 * NUMBER_OF_MOST_RECENT_NOTIFICATIONS_TO_RETURN);
 
+            const mostRecentNotificationsOutput = convertNotificationsToOutput(mostRecentNotificationObjects);
             const amWatchedTrainOutput = convertWatchedTrainToOutput(amWatchedTrain, "AM");
             const pmWatchedTrainOutput = convertWatchedTrainToOutput(pmWatchedTrain, "PM");
+
             res.json({
                 amWatchedTrain: amWatchedTrainOutput,
-                pmWatchedTrain: pmWatchedTrainOutput
+                pmWatchedTrain: pmWatchedTrainOutput,
+                mostRecentNotifications: mostRecentNotificationsOutput,
             })
         } catch(err) {
             debug(err.message);
@@ -227,6 +233,31 @@ const convertWatchedTrainToOutput = (watchedTrainObject) => {
     }
 
     return watchedTrainOutput;
+}
+
+const convertNotificationsToOutput = (notificationsArray) => {
+    let notificationsOutput = [];
+
+    for(let i=0; i<notificationsArray.length; i++) {
+        const notificationObject = notificationsArray[i];
+
+        const formattedNotification = {
+            stopId: notificationObject.stopId,
+            station: notificationObject.station,
+            direction: notificationObject.direction,
+            trainNumber: notificationObject.trainNumber,
+            scheduledDepartureTime: notificationObject.scheduledDepartureTime,
+            expectedDepartureTime: notificationObject.expectedDepartureTime,
+            minutesLate: notificationObject.minutesLate,
+            status: notificationObject.status,
+            notificationMethod: notificationObject.notificationMethod,
+            createdAt: notificationObject.createdAt,
+        }
+
+        notificationsOutput.push(formattedNotification);
+    }
+
+    return notificationsOutput;
 }
 
 /* --- DELETE Functions --- */
