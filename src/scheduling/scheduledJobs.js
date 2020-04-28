@@ -26,7 +26,7 @@ const kickoffCaltrainDelayMonitoring = () => {
     const caltrainTuesdayThroughFridayRule = new schedule.RecurrenceRule();
     caltrainTuesdayThroughFridayRule.dayOfWeek = new schedule.Range(2, 5);
     // No hour rule, because last train arrives in San Jose at 1:42 am and leaves San Jose at 4:28 am. Cleaner to run all day long.
-    caltrainTuesdayThroughFridayRule.minute = new schedule.Range(0, 59, 1); // TODO: Change back to 5
+    caltrainTuesdayThroughFridayRule.minute = new schedule.Range(0, 59, 5);
     const tuesdayThroughFridayCaltrainMonitoringJob = schedule.scheduleJob(caltrainTuesdayThroughFridayRule, weekdayCaltrainMonitoring);
 
     // Saturday Morning: 12:00 am to 2:59 am, to finish Friday's schedule

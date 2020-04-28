@@ -62,7 +62,7 @@ const mtcService = () => {
         return new Promise((resolve, reject) => {
             axios.get(`http://api.511.org/transit/StopMonitoring?agency=${operatorId}&api_key=${API_KEY}${stopId ? '&stopCode=' + stopId : ''}`)
                 .then((response) => {
-                    debug(response.data);
+                    // debug(response.data);
                     resolve(response.data);
                 })
                 .catch((error) => {

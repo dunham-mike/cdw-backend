@@ -286,7 +286,7 @@ const confirmAppDataExistsForUserOrAddIt = (userObject) => {
         userObject.appData = {
             amWatchedTrain: null,
             pmWatchedTrain: null,
-            alerts: null
+            notifications: null
         }
     }
 }
