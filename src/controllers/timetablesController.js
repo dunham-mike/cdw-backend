@@ -2,7 +2,7 @@ const debug = require('debug')('app:timetablesController');
 const Timetables = require('../models/Timetables');
 
 const timetablesController = () => {
-    const getCaltrainWeekdayTimetables = (req, res) => {
+    const getCaltrainWeekdayTimetables = async (req, res) => {
         debug('get request on /timetables/caltrain/weekday');
 
         Timetables.findOne().sort({updated_date: -1})
