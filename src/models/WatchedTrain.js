@@ -16,8 +16,11 @@ const WatchedTrainSchema = new mongoose.Schema({
         default: true,
     },
     usersWatching: {
-        type: mongoose.Schema.Types.Mixed,
-        default: null,
+        // // https://mongoosejs.com/docs/schematypes.html#maps
+        // type: Map,
+        // of: mongoose.Schema.Types.Mixed
+        type: mongoose.Schema.Types.Mixed
+        // default: null,
     },
     trainInfo: {
         station: {

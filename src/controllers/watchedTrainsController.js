@@ -202,7 +202,13 @@ const clearExistingWatchedTrainForUser = (userObject, watchedTrainObject, commut
     }
 
     if(watchedTrainObject && watchedTrainObject.usersWatching) {
-        watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
+        debug('usersWatching before:', watchedTrainObject.usersWatching);
+        // watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
+        let newUsersWatching = { ...watchedTrainObject.usersWatching };
+        delete newUsersWatching[userObject._id.toString()];
+        // newUsersWatching[userObject._id.toString()] = undefined;
+        watchedTrainObject.usersWatching = newUsersWatching;
+        debug('usersWatching after:', watchedTrainObject.usersWatching);
     }
 }
 
@@ -358,10 +364,11 @@ const updateExistingAndNewWatchedTrains = async (userObject, existingWatchedTrai
     addNewWatchedTrainForUser(userObject, newWatchedTrainObject, commuteType);
 
     if (existingWatchedTrainObject) {
-        existingWatchedTrainObject.save();
+        debug('saving existingWatchedTrainObject');
+        await existingWatchedTrainObject.save();
     }
-    userObject.save();
-    newWatchedTrainObject.save();
+    await userObject.save();
+    await newWatchedTrainObject.save();
 }
 
 const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) => {
@@ -378,7 +385,9 @@ const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) 
             [userObject._id.toString()]: true,
         }
     } else {
-        watchedTrainObject.usersWatching[userObject._id.toString()] = true;
+        const newUsersWatching = { ...watchedTrainObject.usersWatching };
+        newUsersWatching[userObject._id.toString()] = true;
+        watchedTrainObject.usersWatching = newUsersWatching;
     }
 }
 
