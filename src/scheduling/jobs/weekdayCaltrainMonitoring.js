@@ -40,7 +40,7 @@ const weekdayCaltrainMonitoring = async () => {
         if(lateTrainsArray.length > 0) {
             await notifyUsersOfLateTrains(lateTrainsArray, trainsToMonitor);
         }
-        debug('Monitoring Process Complete');
+        debug('Monitoring Job Complete');
         
     } catch(err) {
         debug(err);
@@ -182,8 +182,6 @@ const getStopStatusObjectFromMonitoredStop = (monitoredStop, stopId) => {
 }
 
 const addCurrentStatusToDatabase = async (currentStatusArray) => {
-    debug('Adding to database:', currentStatusArray);
-
     try {
         const newCurrentStatus = new CurrentStatus();
         newCurrentStatus.currentStatuses = currentStatusArray;
