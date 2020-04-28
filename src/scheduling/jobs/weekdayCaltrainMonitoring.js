@@ -7,6 +7,9 @@ const WatchedTrain = require('../../models/WatchedTrain');
 const operator = "Caltrain";
 const operatorId = "CT";
 const scheduleType = "Weekday";
+
+const ALERT_BACKWARD_LOOKING_PERIOD_IN_MINS = 30;
+const ALERT_FORWARD_LOOKING_PERIOD_IN_MINS = 90;
 const MINIMUM_MINUTES_LATE_FOR_ALERT = 5;
 
 const weekdayCaltrainMonitoring = async () => {
@@ -23,32 +26,64 @@ const weekdayCaltrainMonitoring = async () => {
                     // If no, create alert and trigger notification for that user.
 
     try {
-        const queryBeginningTime = moment().subtract(30, 'minutes');
-        const queryEndTime = moment().add(90, 'minutes');
+        const trainsToMonitor = await getWatchedTrainsForMonitoring(ALERT_BACKWARD_LOOKING_PERIOD_IN_MINS, ALERT_FORWARD_LOOKING_PERIOD_IN_MINS);
+        debug(trainsToMonitor);
 
-        WatchedTrain.find({
-            operator: operator,
-            scheduleType: scheduleType,
-            active: true,
-            trainInfo: {
-                time: {
-                    $gte: queryBeginningTime,
-                    $lte: queryEndTime
-                }
-            }
-        })
-            .then((watchedTrains) => {
-                if(watchedTrains.length > 0) {
-                    debug(watchedTrains);
-                } else {
-                    debug('No WatchedTrains scheduled to leave within the last 30 mins or the next 90 mins:', watchedTrains);
-                }
-            })
+        const stopIdsToMonitor = getStopIdsForTrainsToMonitor(trainsToMonitor);
+        debug(stopIdsToMonitor);
+
+        // NEXT: fix issue with users not being removed from trains they're watching
+        
     } catch(err) {
         debug(err);
     }
 
         
+}
+
+const getWatchedTrainsForMonitoring = async (backwardLookingMins, forwardLookingMins) => {
+    return new Promise((resolve, reject) => {
+        const queryBeginningTime = moment('1970-01-01 ' + moment().subtract(backwardLookingMins, 'minutes').format('h:mm a'),
+            'YYYY-MM-DD h:mm a');
+        const queryEndTime = moment('1970-01-01 ' + moment().add(forwardLookingMins, 'minutes').format('h:mm a'),
+            'YYYY-MM-DD h:mm a');
+
+        WatchedTrain.find({
+            operator: operator,
+            scheduleType: scheduleType,
+            active: true,
+            'trainInfo.time': {
+                    $gte: queryBeginningTime,
+                    $lte: queryEndTime
+                }
+        })
+            .then((watchedTrains) => {
+                if(watchedTrains.length > 0) {
+                    resolve(watchedTrains);
+                } else {
+                    debug(`No WatchedTrains scheduled to leave within the last ${backwardLookingMins} mins or the next ${forwardLookingMins} mins:`, watchedTrains);
+                    resolve([]);
+                }
+            })
+            .catch((err) => {
+                debug(err);
+                reject(err);
+            })
+    });
+}
+
+const getStopIdsForTrainsToMonitor = (trainsToMonitor) => {
+    const stopIdsProcessed = {};
+
+    for(let i=0; i<trainsToMonitor.length; i++) {
+        const thisStopid = trainsToMonitor[i].trainInfo.stopId;
+
+        if(!(thisStopid in stopIdsProcessed)) {
+            stopIdsProcessed[thisStopid] = true;
+        }
+    }
+
+    return stopIdsProcessed;
 }
 
 const createOrUpdateAlert = async () => {
