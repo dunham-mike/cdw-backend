@@ -72,6 +72,10 @@ const getWatchedTrainsForMonitoring = async (backwardLookingMins, forwardLooking
                 }
             })
             .catch((err) => {
+                debug('queryBeginningTime:', queryBeginningTime);
+                debug('queryEndTime:', queryEndTime);
+                debug('operator:', operator);
+                debug('scheduleType:', scheduleType);
                 debug(err);
                 reject(err);
             })
@@ -106,6 +110,7 @@ const getUpdatedStopMonitoringData = async (stopIdsObject) => {
             const stopMonitoringResultObject = JSON.parse(stopMonitoringResultString)
             stopMonitoringAPIResults[thisStopId] = stopMonitoringResultObject
         } catch(err) {
+            debug('stopIdsObject:', stopIdsObject);
             debug(err);
             reject(err);
         }
@@ -126,16 +131,33 @@ const processStopMonitoringData = (stopMonitoringAPIResults) => {
         for(let j=0; j<monitoredStopsArray.length; j++) {
             const monitoredStop = monitoredStopsArray[j];
             const thisStopStatusObject = getStopStatusObjectFromMonitoredStop(monitoredStop, stopId);
+            // Validating the stopStatusObject is necessary because the transit API seems to leave train numbers as null when it first begins to report on a train's status
+            const stopStatusObjectIsValid = isStopStatusValid(thisStopStatusObject); 
 
-            currentStatusArray.push(thisStopStatusObject);
+            if(stopStatusObjectIsValid) {
+                currentStatusArray.push(thisStopStatusObject);
 
-            if(thisStopStatusObject.minutesLate > 0) {
-                lateTrainsArray.push(thisStopStatusObject);
+                if(thisStopStatusObject.minutesLate > 0) {
+                    lateTrainsArray.push(thisStopStatusObject);
+                }
             }
         }
     }
 
     return [currentStatusArray, lateTrainsArray];
+}
+
+const isStopStatusValid = (stopStatusObject) => {
+    return (
+        stopStatusObject.stopId !== null 
+        && stopStatusObject.station !== null 
+        && stopStatusObject.direction !== null 
+        && stopStatusObject.trainNumber !== null 
+        && stopStatusObject.scheduledDepartureTime !== null 
+        && stopStatusObject.expectedDepartureTime !== null 
+        && stopStatusObject.minutesLate !== null && typeof(stopStatusObject.minutesLate) === "number"
+        && (stopStatusObject.status === "Late" || stopStatusObject.status === "On Time") 
+    );
 }
 
 const getStopStatusObjectFromMonitoredStop = (monitoredStop, stopId) => {
@@ -186,6 +208,7 @@ const addCurrentStatusToDatabase = async (currentStatusArray) => {
         await newCurrentStatus.save()
         debug('CurrentStatus added to database!');
     } catch(err) {
+        debug('currentStatusArray:', currentStatusArray);
         debug(err);
     }
 }
@@ -210,6 +233,8 @@ const notifyUsersOfLateTrains = async (lateTrainsArray, trainsToMonitor) => {
             }
         }
     } catch(err) {
+        debug('lateTrainsArray:', lateTrainsArray);
+        debug('trainsToMonitor:', trainsToMonitor);
         debug(err);
     }
     
@@ -270,6 +295,9 @@ const notifyUsersOnWatchedTrainObject = async (watchedTrainObject, lateTrain) =>
                 }   
             })
             .catch((err) => {
+                debug('userId:', userId);
+                debug('watchedTrainObject:', watchedTrainObject);
+                debug('lateTrain:', lateTrain);
                 debug(err);
             })
     }
