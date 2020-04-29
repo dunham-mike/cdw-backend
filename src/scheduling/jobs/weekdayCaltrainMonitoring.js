@@ -11,7 +11,7 @@ const scheduleType = "Weekday";
 
 const NOTIFICATION_BACKWARD_LOOKING_PERIOD_IN_MINS = 30;
 const NOTIFICATION_FORWARD_LOOKING_PERIOD_IN_MINS = 90;
-const MINIMUM_MINUTES_LATE_FOR_ALERT = 5;
+const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 10;
 
 const weekdayCaltrainMonitoring = async () => {
     debug('--------------------------------------------------------');
@@ -31,7 +31,7 @@ const weekdayCaltrainMonitoring = async () => {
         const trainsToMonitor = await getWatchedTrainsForMonitoring(NOTIFICATION_BACKWARD_LOOKING_PERIOD_IN_MINS, NOTIFICATION_FORWARD_LOOKING_PERIOD_IN_MINS);
         const stopIdsToMonitor = getStopIdsForTrainsToMonitor(trainsToMonitor);
         const stopMonitoringAPIResults = await getUpdatedStopMonitoringData(stopIdsToMonitor);
-        const [currentStatusArray, lateTrainsArray ] = processStopMonitoringData(stopMonitoringAPIResults, MINIMUM_MINUTES_LATE_FOR_ALERT);
+        const [currentStatusArray, lateTrainsArray ] = processStopMonitoringData(stopMonitoringAPIResults, MINIMUM_MINUTES_LATE_FOR_NOTIFICATION);
 
         await addCurrentStatusToDatabase(currentStatusArray);
 
@@ -119,7 +119,7 @@ const getUpdatedStopMonitoringData = async (stopIdsObject) => {
     return stopMonitoringAPIResults;
 }
 
-const processStopMonitoringData = (stopMonitoringAPIResults) => {
+const processStopMonitoringData = (stopMonitoringAPIResults, minimumMinutesLateForNotification) => {
     const stopIds = Object.keys(stopMonitoringAPIResults);
     const currentStatusArray = [];
     const lateTrainsArray = [];
@@ -137,7 +137,7 @@ const processStopMonitoringData = (stopMonitoringAPIResults) => {
             if(stopStatusObjectIsValid) {
                 currentStatusArray.push(thisStopStatusObject);
 
-                if(thisStopStatusObject.minutesLate > 0) {
+                if(thisStopStatusObject.minutesLate >= minimumMinutesLateForNotification) {
                     lateTrainsArray.push(thisStopStatusObject);
                 }
             }
