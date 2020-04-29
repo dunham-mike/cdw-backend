@@ -33,9 +33,7 @@ const weekdayCaltrainMonitoring = async () => {
         const stopMonitoringAPIResults = await getUpdatedStopMonitoringData(stopIdsToMonitor);
         const [currentStatusArray, lateTrainsArray ] = processStopMonitoringData(stopMonitoringAPIResults, MINIMUM_MINUTES_LATE_FOR_ALERT);
 
-        if(currentStatusArray.length > 0) {
-            await addCurrentStatusToDatabase(currentStatusArray);
-        }
+        await addCurrentStatusToDatabase(currentStatusArray);
 
         if(lateTrainsArray.length > 0) {
             await notifyUsersOfLateTrains(lateTrainsArray, trainsToMonitor);
