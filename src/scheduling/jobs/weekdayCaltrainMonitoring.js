@@ -1,6 +1,7 @@
 const debug = require('debug')('app:weekdayCaltrainMonitoring');
 const moment = require('moment-timezone');
 const transitDataService = require('../../services/mtcService');
+const smsService = require('../../services/smsService');
 const WatchedTrain = require('../../models/WatchedTrain');
 const CurrentStatus = require('../../models/CurrentStatus');
 const User = require('../../models/User');
@@ -13,9 +14,12 @@ const NOTIFICATION_BACKWARD_LOOKING_PERIOD_IN_MINS = 30;
 const NOTIFICATION_FORWARD_LOOKING_PERIOD_IN_MINS = 90;
 const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 10;
 
-const weekdayCaltrainMonitoring = async () => {
+const weekdayCaltrainMonitoring = async (schedule) => {
     debug('--------------------------------------------------------');
     debug('Monitor Caltrain Delays here! The time is:', moment().tz("America/Los_Angeles").format('h:mm a') );
+    debug('Schedule:', schedule);
+    debug('Schedule type:', typeof(schedule));
+    // TODO: Fix issue where accumulated jobs run all at once and get a 429 error from the stopMonitoring API
 
     // Overall Algorithm:
     // Get all the WatchedTrain objects that were scheduled to depart within the last 30 mins or in the next 90 mins.
@@ -137,7 +141,8 @@ const processStopMonitoringData = (stopMonitoringAPIResults, minimumMinutesLateF
             if(stopStatusObjectIsValid) {
                 currentStatusArray.push(thisStopStatusObject);
 
-                if(thisStopStatusObject.minutesLate >= minimumMinutesLateForNotification) {
+                // TODO: change this back
+                if(thisStopStatusObject.minutesLate >= 0 /* minimumMinutesLateForNotification */) {
                     lateTrainsArray.push(thisStopStatusObject);
                 }
             }
@@ -309,9 +314,16 @@ const addNotificationForUser = async (user, lateTrain) => {
     // TODO: Modify this to use a notification preference set by the user and to text or email them, as requested
     lateTrain.notificationMethod = 'web app only';
 
+    await sendSMSNotification(user, lateTrain);
     user.appData.notifications.push(lateTrain);
     await user.save();
     debug('notification added!');
+}
+
+const sendSMSNotification = async (user) => {
+    debug('calling SMS feature');
+    await smsService.sendSMSNotificationToUser(user);
+    debug('done calling SMS feature');
 }
 
 module.exports = weekdayCaltrainMonitoring;
