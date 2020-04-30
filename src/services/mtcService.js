@@ -47,7 +47,7 @@ const mtcService = () => {
     }
 
     const getStopMonitoring = (operatorId, stopId) => {
-        debug('getStopMonitoring API call');
+        debug('getStopMonitoring API call - stopId:', stopId);
         /*
             API NOTES: 
             - If called with no stopCode parameter, it will return info on stops in the next 20-30 mins (not clear exactly how long). 
