@@ -116,13 +116,6 @@ const watchedTrainsController = () => {
                 = await prepareUserAndTrainObjects(userId, commuteType, trainInfo);
             await updateExistingAndNewWatchedTrains(userObject, existingWatchedTrainObject, newWatchedTrainObject, commuteType);
 
-            debug('---userObject---');
-            debug(userObject);
-            debug('---existingTrainObject---');
-            debug(existingWatchedTrainObject);
-            debug('---newTrainObject---');
-            debug(newWatchedTrainObject);
-
             res.send('Watched Train successfully updated.');
         } catch(err) {
             debug(err.message);
@@ -208,13 +201,9 @@ const clearExistingWatchedTrainForUser = (userObject, watchedTrainObject, commut
     }
 
     if(watchedTrainObject && watchedTrainObject.usersWatching) {
-        debug('usersWatching before:', watchedTrainObject.usersWatching);
-        // watchedTrainObject.usersWatching[userObject._id.toString()] = undefined;
         let newUsersWatching = { ...watchedTrainObject.usersWatching };
         delete newUsersWatching[userObject._id.toString()];
-        // newUsersWatching[userObject._id.toString()] = undefined;
         watchedTrainObject.usersWatching = newUsersWatching;
-        debug('usersWatching after:', watchedTrainObject.usersWatching);
     }
 }
 
@@ -334,7 +323,6 @@ const isUpdateActualChange = (existingWatchedTrainObject, trainInfo) => {
         && moment(relevantTrain.time).tz("America/Los_Angeles").format('h:mm a') === trainInfo.time
         && relevantTrain.trainNumber === trainInfo.trainNumber 
     ) {
-        debug("Existing train matches updated train.");
         return false;
     }
 
@@ -350,7 +338,7 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
             'trainInfo.station': trainInfo.station,
             'trainInfo.stopId': trainInfo.stopId,
             'trainInfo.direction': trainInfo.direction,
-            'trainInfo.time': moment('1970-01-01 ' + trainInfo.time),
+            'trainInfo.time': moment('1970-01-01 ' + trainInfo.time, 'YYYY-MM-DD h:mm a'),
             'trainInfo.trainNumber': trainInfo.trainNumber
         })
             .then((watchedTrain) => {
@@ -366,7 +354,7 @@ const getNewWatchedTrainOrCreateIt = async (trainInfo) => {
                         station: trainInfo.station,
                         stopId: trainInfo.stopId,
                         direction: trainInfo.direction,
-                        time: moment('1970-01-01 ' + trainInfo.time),
+                        time: moment('1970-01-01 ' + trainInfo.time, 'YYYY-MM-DD h:mm a'),
                         trainNumber: trainInfo.trainNumber
                     }
                     resolve(newWatchedTrain);                    
@@ -395,7 +383,6 @@ const updateExistingAndNewWatchedTrains = async (userObject, existingWatchedTrai
     addNewWatchedTrainForUser(userObject, newWatchedTrainObject, commuteType);
 
     if (existingWatchedTrainObject) {
-        debug('saving existingWatchedTrainObject');
         await existingWatchedTrainObject.save();
     }
     await userObject.save();
