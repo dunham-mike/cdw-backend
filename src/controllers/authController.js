@@ -5,7 +5,6 @@ const passport = require('passport');
 const authController = () => {
     const createUserAccount = (req, res) => {
         debug('post request on /api/auth/create-account');
-        debug(req.body);
 
         passport.authenticate('create-account', (err, user) => {
             debug('err:', err);
@@ -28,7 +27,6 @@ const authController = () => {
                 debug('err:', err);
                 res.send(err);
             } else {
-                debug('user:', user);
                 res.json(user.toAuthJSON());
             }
         })(req, res);

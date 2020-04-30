@@ -7,7 +7,6 @@ const currentStatusController = () => {
 
         CurrentStatus.findOne().sort({createdAt: -1})
             .then(currentStatus => {
-                debug(currentStatus);
                 res.json(currentStatus);
             })
             .catch(error => {
