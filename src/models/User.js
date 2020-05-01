@@ -74,7 +74,7 @@ const UserSchema = new mongoose.Schema({
         },
         phoneNumber: {
             type: String,
-            match: [/\+\d{10}/, 'is invalid']
+            match: [/\+1\d{10}/, 'is invalid']
         }
     },
     appData: {

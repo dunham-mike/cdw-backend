@@ -23,7 +23,7 @@ connectDB();
 const adminRouter = require('./src/routes/adminRoutes')();
 const authRouter = require('./src/routes/authRoutes')();
 const timetablesRouter = require('./src/routes/timetablesRoutes')();
-const watchedTrainsRouter = require('./src/routes/watchedTrainsRoutes')();
+const userDataRouter = require('./src/routes/userDataRoutes')();
 const currentStatusRouter = require('./src/routes/currentStatusRoutes')();
 
 process.env.TZ = 'America/Los_Angeles'; // To make sure alert monitoring runs on the right days of the week, regardless of server time zone
@@ -42,7 +42,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/api/admin', authenticateAdminJWT, adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/timetables', authenticateJWT, timetablesRouter);
-app.use('/api/watched-trains', authenticateJWT, watchedTrainsRouter);
+app.use('/api/user-data', authenticateJWT, userDataRouter);
 app.use('/api/current-status', authenticateJWT, currentStatusRouter)
 app.get('/', (req, res) => res.send('Caltrain Delay Watch backend server'));
 

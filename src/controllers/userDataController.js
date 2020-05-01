@@ -1,13 +1,13 @@
-const debug = require('debug')('app:watchedTrainsController');
+const debug = require('debug')('app:userDataController');
 const User = require('../models/User');
 const WatchedTrain = require('../models/WatchedTrain');
 const moment = require('moment-timezone');
 
 const NUMBER_OF_MOST_RECENT_NOTIFICATIONS_TO_RETURN = 5;
 
-const watchedTrainsController = () => {
-    const getWatchedTrains = async (req, res) => {
-        debug('get request on /watched-trains');
+const userDataController = () => {
+    const getUserData = async (req, res) => {
+        debug('get request on /user-data');
 
         try {
             const userId = req.user.id;
@@ -146,7 +146,7 @@ const watchedTrainsController = () => {
         */
     }
 
-    return { getWatchedTrains, clearWatchedTrain, addOrUpdateWatchedTrain };
+    return { getUserData, clearWatchedTrain, addOrUpdateWatchedTrain };
 };
 
 /* --- Helper Functions --- */
@@ -409,4 +409,4 @@ const addNewWatchedTrainForUser = (userObject, watchedTrainObject, commuteType) 
     }
 }
 
-module.exports = watchedTrainsController;
+module.exports = userDataController;
