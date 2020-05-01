@@ -189,7 +189,17 @@ const getStopStatusObjectFromMonitoredStop = (monitoredStop, stopId) => {
         departureMinutesLate = 0;
     }
 
+    
     const minutesLate = Math.max(arrivalMinutesLate, departureMinutesLate);
+    if(minutesLate > 60) {
+        debug('arrivalMinutesLate:', arrivalMinutesLate);
+        debug('scheduledArrivalTime:', scheduledArrivalTime.toISOString());
+        debug('expectedArrivalTime:', expectedArrivalTime.toISOString());
+        debug('-----');
+        debug('departureMinutesLate:', departureMinutesLate);
+        debug('scheduledDepartureTime:', scheduledDepartureTime.toISOString());
+        debug('expectedDepartureTime:', expectedDepartureTime.toISOString());
+    }
 
     // TODO: Figure out what a "canceled" train looks like in the API
     const thisStopStatusObject = {
@@ -311,19 +321,41 @@ const notifyUsersOnWatchedTrainObject = async (watchedTrainObject, lateTrain) =>
 const addNotificationForUser = async (user, lateTrain) => {
     debug('adding an alert for:', user._id);
 
-    // TODO: Modify this to use a notification preference set by the user and to text or email them, as requested
-    lateTrain.notificationMethod = 'web app only';
+    const userNotificationObject = {...lateTrain};
 
-    await sendSMSNotification(user, lateTrain);
-    user.appData.notifications.push(lateTrain);
+    // TODO: Modify this to use a notification preference set by the user and to text them only if requested
+    
+    const userPhoneNumber = process.env.SMS_SERVICE_TO_TESTING_PHONE_NUMBER; // TODO: get from actual user
+
+    const smsMessageId = await sendTrainDelaySMSNotification(userPhoneNumber, lateTrain);
+
+    if(smsMessageId !== null) {
+        userNotificationObject.notificationMethod = 'sms';
+    } else {
+        userNotificationObject.notificationMethod = 'sms error';
+    }
+    userNotificationObject.notificationDestination = userPhoneNumber; 
+    userNotificationObject.notificationMessageId = smsMessageId;
+
+    user.appData.notifications.push(userNotificationObject);
     await user.save();
     debug('notification added!');
 }
 
-const sendSMSNotification = async (user) => {
-    debug('calling SMS feature');
-    await smsService.sendSMSNotificationToUser(user);
-    debug('done calling SMS feature');
+const sendTrainDelaySMSNotification = async (recipientPhoneNumber, lateTrain) => {
+    const delayMessage = `${lateTrain.direction} Caltrain ${lateTrain.trainNumber} ` 
+        + `will be ${(lateTrain.minutesLate > 180 ? 'TBD' : lateTrain.minutesLate)} mins late ` // Cuts off above 180 mins, due to occasionally unreliable data from the stopMonitoring API
+        + `departing ${lateTrain.station}.\n` 
+        + `Expected departure: ${moment.utc(lateTrain.expectedDepartureTime).tz("America/Los_Angeles").format('h:mm a')}\n`
+        + `Original departure: ${moment.utc(lateTrain.scheduledDepartureTime).tz("America/Los_Angeles").format('h:mm a')}\n`
+        + `More at CaltrainDelayWatch.com`;
+
+    debug('Calling SMS feature with delayMessage:', delayMessage);
+    debug('Message length:', delayMessage.length);
+    const messageId = await smsService.sendSMSNotificationToUser(recipientPhoneNumber, delayMessage);
+    debug('Done calling SMS feature. messageId:', messageId);
+
+    return messageId;
 }
 
 module.exports = weekdayCaltrainMonitoring;

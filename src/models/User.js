@@ -43,7 +43,13 @@ const NotificationsSchema = new mongoose.Schema({
     notificationMethod: {
         type: String,
         required: true,
-        enum: ['email', 'text', 'web app only']
+        enum: ['email', 'sms', 'web app only', 'email error', 'sms error']
+    },
+    notificationDestination: {
+        type: String
+    },
+    notificationMessageId: {
+        type: String
     }
 }, { timestamps: true });
 
