@@ -6,12 +6,10 @@ const authController = () => {
     const createUserAccount = (req, res) => {
         debug('post request on /api/auth/create-account');
 
-        passport.authenticate('create-account', (err, user) => {
-            debug('err:', err);
-            debug('user:', user);
-            
+        passport.authenticate('create-account', (err, user) => {            
             if(err) {
-                res.send(err);
+                debug(err);
+                res.send('Error creating new user.');
             } else {
                 res.send('Account successfully created.');
             }

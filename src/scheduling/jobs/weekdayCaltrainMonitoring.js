@@ -17,8 +17,8 @@ const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 10;
 const weekdayCaltrainMonitoring = async (schedule) => {
     debug('--------------------------------------------------------');
     debug('Monitor Caltrain Delays here! The time is:', moment().tz("America/Los_Angeles").format('h:mm a') );
-    debug('Schedule:', schedule);
-    debug('Schedule type:', typeof(schedule));
+    debug('Schedule:', schedule.scheduledJobs);
+    debug('Schedule type:', typeof(schedule.scheduledJobs));
     // TODO: Fix issue where accumulated jobs run all at once and get a 429 error from the stopMonitoring API
 
     // Overall Algorithm:
