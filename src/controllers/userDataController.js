@@ -16,6 +16,8 @@ const userDataController = () => {
             const amWatchedTrain = await getExistingWatchedTrainForUser(userObject, "AM");
             const pmWatchedTrain = await getExistingWatchedTrainForUser(userObject, "PM");
             const mostRecentNotificationObjects = userObject.appData.notifications.slice(-1 * NUMBER_OF_MOST_RECENT_NOTIFICATIONS_TO_RETURN);
+            const preferredNotificationMethod = userObject.appPreferences.preferredNotificationMethod;
+            const phoneNumber = (userObject.appPreferences.phoneNumber ? userObject.appPreferences.phoneNumber : null);
 
             const mostRecentNotificationsOutput = convertNotificationsToOutput(mostRecentNotificationObjects);
             const amWatchedTrainOutput = convertWatchedTrainToOutput(amWatchedTrain, "AM");
@@ -25,6 +27,8 @@ const userDataController = () => {
                 amWatchedTrain: amWatchedTrainOutput,
                 pmWatchedTrain: pmWatchedTrainOutput,
                 mostRecentNotifications: mostRecentNotificationsOutput,
+                preferredNotificationMethod: preferredNotificationMethod,
+                phoneNumber: phoneNumber
             })
         } catch(err) {
             debug(err.message);
