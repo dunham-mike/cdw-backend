@@ -42,6 +42,52 @@ const userDataController = () => {
         */
     }
 
+    const updateUserPreferences = async (req, res) => {
+        debug('post request on /user-data/preferences');
+
+        try {
+            const userId = req.user.id;
+            const userObject = await getUserObjectByUserId(userId);
+
+            const newPreferredNotificationMethod = req.body.preferredNotificationMethod;
+            const newPhoneNumber = req.body.phoneNumber;
+
+            if(!isUserPreferenceUpdateValid(newPreferredNotificationMethod, newPhoneNumber)) {
+                throw new Error('Request body does not have expected data.')
+            }
+
+            if(userObject.appPreferences.preferredNotificationMethod === newPreferredNotificationMethod 
+                && userObject.appPreferences.phoneNumber === newPhoneNumber) {
+                throw new Error('Request body is not an actual change to existing user preferences.')
+            }
+
+            userObject.appPreferences.preferredNotificationMethod = newPreferredNotificationMethod;
+            userObject.appPreferences.phoneNumber = newPhoneNumber;
+            await userObject.save();
+
+            res.send('User preferences successfully updated.');
+        } catch(err) {
+            debug(err.message);
+            if(err.message === 'Request body does not have expected data.'
+                || err.message === 'Request body is not an actual change to existing user preferences.'
+            ) {
+                    res.status(400).send(err.message);
+                } else {
+                    res.sendStatus(500);
+                }
+        }  
+        
+        /* 
+            API: Update user's preferences.
+            Authorization: Bearer token
+            Parameters (preferredNotifcationMethod required):
+                {
+                    "preferredNotificationMethod": "sms" or "web app",
+                    "phoneNumber": "+12223334444" format
+                }
+        */
+    }
+
     const clearWatchedTrain = async (req, res) => {
         debug('delete request on /watched-trains');
 
@@ -79,8 +125,8 @@ const userDataController = () => {
 
             clearExistingWatchedTrainForUser(userObject, existingWatchedTrainObject, commuteType);
 
-            userObject.save();
-            existingWatchedTrainObject.save();
+            await userObject.save();
+            await existingWatchedTrainObject.save();
 
             res.send('Watched Train successfully cleared.');
         } catch(err) {
@@ -150,7 +196,7 @@ const userDataController = () => {
         */
     }
 
-    return { getUserData, clearWatchedTrain, addOrUpdateWatchedTrain };
+    return { getUserData, updateUserPreferences, clearWatchedTrain, addOrUpdateWatchedTrain };
 };
 
 /* --- Helper Functions --- */
@@ -264,6 +310,20 @@ const clearHasCorrectParameters = (commuteType) => {
 }
 
 /* --- POST Functions --- */
+
+const isUserPreferenceUpdateValid = (preferredNotificationMethod, phoneNumber) => {
+    if(preferredNotificationMethod !== 'sms' && preferredNotificationMethod !== 'web app') {
+        return false;
+    }
+
+    if(phoneNumber === null) {
+        return true;
+    } else if(phoneNumber.length !== 12 || phoneNumber.slice(0, 2) !== '+1' || isNaN(phoneNumber.slice(2))) {
+        return false;
+    }
+
+    return true;
+}
 
 const updateHasCorrectParameters = (commuteType, trainInfo) => {
     if(commuteType !== "AM" && commuteType !== "PM") {
