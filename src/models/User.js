@@ -43,7 +43,7 @@ const NotificationsSchema = new mongoose.Schema({
     notificationMethod: {
         type: String,
         required: true,
-        enum: ['email', 'sms', 'web app only', 'email error', 'sms error']
+        enum: ['email', 'sms', 'web app', 'email error', 'sms error']
     },
     notificationDestination: {
         type: String
@@ -65,6 +65,18 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     hash: String,
     salt: String,
+    appPreferences: {
+        preferredContactMethod: {
+            type: String,
+            required: true,
+            enum: ['email', 'sms', 'web app'],
+            default: 'web app'
+        },
+        phoneNumber: {
+            type: String,
+            match: [/\+\d{10}/, 'is invalid']
+        }
+    },
     appData: {
         amWatchedTrain: { type: mongoose.ObjectId, default: null },
         pmWatchedTrain: { type: mongoose.ObjectId, default: null },

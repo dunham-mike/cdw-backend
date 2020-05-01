@@ -141,8 +141,7 @@ const processStopMonitoringData = (stopMonitoringAPIResults, minimumMinutesLateF
             if(stopStatusObjectIsValid) {
                 currentStatusArray.push(thisStopStatusObject);
 
-                // TODO: change this back
-                if(thisStopStatusObject.minutesLate >= 0 /* minimumMinutesLateForNotification */) {
+                if(thisStopStatusObject.minutesLate >= minimumMinutesLateForNotification) {
                     lateTrainsArray.push(thisStopStatusObject);
                 }
             }
@@ -319,27 +318,30 @@ const notifyUsersOnWatchedTrainObject = async (watchedTrainObject, lateTrain) =>
 }
 
 const addNotificationForUser = async (user, lateTrain) => {
-    debug('adding an alert for:', user._id);
+    debug('Adding a notification for:', user._id);
 
     const userNotificationObject = {...lateTrain};
+    const userPreferredContactMethod = (user.appPreferences ? user.appPreferences.preferredContactMethod : null);
 
-    // TODO: Modify this to use a notification preference set by the user and to text them only if requested
+    if(userPreferredContactMethod === "sms" && user.appPreferences.phoneNumber) {
     
-    const userPhoneNumber = process.env.SMS_SERVICE_TO_TESTING_PHONE_NUMBER; // TODO: get from actual user
+        const userPhoneNumber = user.appPreferences.phoneNumber;
+        const smsMessageId = await sendTrainDelaySMSNotification(userPhoneNumber, lateTrain);
 
-    const smsMessageId = await sendTrainDelaySMSNotification(userPhoneNumber, lateTrain);
+        if(smsMessageId !== null) {
+            userNotificationObject.notificationMethod = 'sms';
+        } else {
+            userNotificationObject.notificationMethod = 'sms error';
+        }
 
-    if(smsMessageId !== null) {
-        userNotificationObject.notificationMethod = 'sms';
+        userNotificationObject.notificationDestination = userPhoneNumber; 
+        userNotificationObject.notificationMessageId = smsMessageId;
     } else {
-        userNotificationObject.notificationMethod = 'sms error';
+        userNotificationObject.notificationMethod = "web app";
     }
-    userNotificationObject.notificationDestination = userPhoneNumber; 
-    userNotificationObject.notificationMessageId = smsMessageId;
 
     user.appData.notifications.push(userNotificationObject);
     await user.save();
-    debug('notification added!');
 }
 
 const sendTrainDelaySMSNotification = async (recipientPhoneNumber, lateTrain) => {
