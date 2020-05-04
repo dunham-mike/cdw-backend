@@ -12,7 +12,7 @@ const scheduleType = "Weekday";
 
 const NOTIFICATION_BACKWARD_LOOKING_PERIOD_IN_MINS = 30;
 const NOTIFICATION_FORWARD_LOOKING_PERIOD_IN_MINS = 90;
-const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 10;
+const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 0; // TODO: Change back to 10 mins
 
 const weekdayCaltrainMonitoring = async (schedule) => {
     debug('--------------------------------------------------------');
