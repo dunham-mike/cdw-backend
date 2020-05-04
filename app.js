@@ -12,6 +12,7 @@ require('./src/config/passport');
 const authenticateJWT = require('./src/middleware/authenticateJWT');
 const authenticateAdminJWT = require('./src/middleware/authenticateAdminJWT');
 const runScheduledJobs = require('./src/scheduling/scheduledJobs');
+const favicon = require('serve-favicon');
 
 const bodyParser = require('body-parser');
 
@@ -34,6 +35,8 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 
 app.use(passport.initialize());
+
+app.use(favicon(__dirname + '/favicon.ico'));
 
 app.use(morgan('tiny'));
 app.use(bodyParser.json());
