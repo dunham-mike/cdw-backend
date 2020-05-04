@@ -12,7 +12,7 @@ const scheduleType = "Weekday";
 
 const NOTIFICATION_BACKWARD_LOOKING_PERIOD_IN_MINS = 30;
 const NOTIFICATION_FORWARD_LOOKING_PERIOD_IN_MINS = 90;
-const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 0; // TODO: Change back to 10 mins
+const MINIMUM_MINUTES_LATE_FOR_NOTIFICATION = 10;
 
 const weekdayCaltrainMonitoring = async (schedule) => {
     debug('--------------------------------------------------------');
@@ -322,11 +322,6 @@ const addNotificationForUser = async (user, lateTrain) => {
 
     const userNotificationObject = {...lateTrain};
     const preferredNotificationMethod = (user.appPreferences ? user.appPreferences.preferredNotificationMethod : null);
-
-    debug('preferredNotificationMethod:', preferredNotificationMethod);
-    if(preferredNotificationMethod) {
-        debug('user.appPreferences.phoneNumber:', user.appPreferences.phoneNumber);
-    }
 
     if(preferredNotificationMethod === "sms" && user.appPreferences.phoneNumber) {
     
