@@ -321,14 +321,14 @@ const addNotificationForUser = async (user, lateTrain) => {
     debug('Adding a notification for:', user._id);
 
     const userNotificationObject = {...lateTrain};
-    const userPreferredContactMethod = (user.appPreferences ? user.appPreferences.preferredContactMethod : null);
+    const preferredNotificationMethod = (user.appPreferences ? user.appPreferences.preferredNotificationMethod : null);
 
-    debug('userPreferredContactMethod:', userPreferredContactMethod);
-    if(userPreferredContactMethod) {
+    debug('preferredNotificationMethod:', preferredNotificationMethod);
+    if(preferredNotificationMethod) {
         debug('user.appPreferences.phoneNumber:', user.appPreferences.phoneNumber);
     }
 
-    if(userPreferredContactMethod === "sms" && user.appPreferences.phoneNumber) {
+    if(preferredNotificationMethod === "sms" && user.appPreferences.phoneNumber) {
     
         const userPhoneNumber = user.appPreferences.phoneNumber;
         const smsMessageId = await sendTrainDelaySMSNotification(userPhoneNumber, lateTrain);
