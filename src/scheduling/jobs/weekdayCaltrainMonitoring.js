@@ -323,6 +323,11 @@ const addNotificationForUser = async (user, lateTrain) => {
     const userNotificationObject = {...lateTrain};
     const userPreferredContactMethod = (user.appPreferences ? user.appPreferences.preferredContactMethod : null);
 
+    debug('userPreferredContactMethod:', userPreferredContactMethod);
+    if(userPreferredContactMethod) {
+        debug('user.appPreferences.phoneNumber:', user.appPreferences.phoneNumber);
+    }
+
     if(userPreferredContactMethod === "sms" && user.appPreferences.phoneNumber) {
     
         const userPhoneNumber = user.appPreferences.phoneNumber;
