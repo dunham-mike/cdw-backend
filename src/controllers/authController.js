@@ -18,7 +18,7 @@ const authController = () => {
 
     const login = (req, res) => {
         debug('post request on /api/auth/login');
-        debug(req.body);
+        debug(req.body.user.email);
 
         passport.authenticate('login', (err, user) => {
             if(err) {
