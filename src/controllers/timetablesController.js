@@ -7,7 +7,6 @@ const timetablesController = () => {
 
         Timetables.findOne().sort({updated_date: -1})
             .then(timetables => {
-                debug(timetables);
                 res.json(timetables);
             })
             .catch(error => {

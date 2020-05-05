@@ -68,8 +68,10 @@ const getWatchedTrainsForMonitoring = async (backwardLookingMins, forwardLooking
                 }
         })
             .then((watchedTrains) => {
-                if(watchedTrains.length > 0) {
-                    resolve(watchedTrains);
+                const watchedTrainsWithUsers = watchedTrains.filter(train => Object.keys(train.usersWatching).length > 0);
+
+                if(watchedTrainsWithUsers.length > 0) {
+                    resolve(watchedTrainsWithUsers);
                 } else {
                     debug(`No WatchedTrains scheduled to leave within the last ${backwardLookingMins} mins or the next ${forwardLookingMins} mins:`, watchedTrains);
                     resolve([]);
