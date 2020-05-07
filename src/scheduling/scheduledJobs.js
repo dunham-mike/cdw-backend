@@ -1,6 +1,4 @@
-// const debug = require('debug')('app:scheduledJobs');
 const schedule = require('node-schedule');
-// const moment = require('moment-timezone');
 const weekdayCaltrainMonitoring = require('./jobs/weekdayCaltrainMonitoring');
 
 const runScheduledJobs = () => {
@@ -8,12 +6,6 @@ const runScheduledJobs = () => {
 }
 
 const kickoffCaltrainDelayMonitoring = () => {
-
-    // For testing -- TODO: remove this when feature is complete
-    // const caltrainTestingRule = new schedule.RecurrenceRule();
-    // caltrainTestingRule.dayOfWeek = 0; 
-    // caltrainTestingRule.minute = new schedule.Range(0, 59, 1);
-    // const testingCaltrainMonitoringJob = schedule.scheduleJob(caltrainTestingRule, weekdayCaltrainMonitoring);
 
     // Monday: 4 am to 11:59 pm, to ignore any late Sunday trains
     const caltrainMondayRule = new schedule.RecurrenceRule();

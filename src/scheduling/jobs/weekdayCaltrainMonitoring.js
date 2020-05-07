@@ -352,7 +352,7 @@ const sendTrainDelaySMSNotification = async (recipientPhoneNumber, lateTrain) =>
         + `departing ${lateTrain.station}.\n` 
         + `Expected departure: ${moment.utc(lateTrain.expectedDepartureTime).tz("America/Los_Angeles").format('h:mm a')}\n`
         + `Original departure: ${moment.utc(lateTrain.scheduledDepartureTime).tz("America/Los_Angeles").format('h:mm a')}\n`
-        + `More at CaltrainDelayWatch.com`;
+        + `More at https://caltrain-delay-watch.web.app/`;
 
     debug('Calling SMS feature with delayMessage:', delayMessage);
     debug('Message length:', delayMessage.length);
