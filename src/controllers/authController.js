@@ -9,7 +9,7 @@ const authController = () => {
         passport.authenticate('create-account', async (err, user) => {            
             if(err) {
                 debug(err);
-                res.send('Error creating new user.');
+                res.send(err);
             } else {
                 if(user.appPreferences.preferredNotificationMethod === "sms") {
                     const recipientPhoneNumber = user.appPreferences.phoneNumber;
